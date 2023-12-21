@@ -51,9 +51,9 @@ productperformance = SUM(quantityOrdered * priceEach)
 
 --Low stock
 SELECT productCode, 
-				 ROUND(SUM(quantityOrdered) * 1.0 / (SELECT quantityInStock
-																								FROM products p
-																								WHERE od.productCode = p.productCode), 2) AS low_stock
+       ROUND(SUM(quantityOrdered) * 1.0 / (SELECT quantityInStock
+					     FROM products p
+					    WHERE od.productCode = p.productCode), 2) AS low_stock
   FROM orderdetails od
  GROUP BY productCode
  ORDER BY low_stock DESC
@@ -61,7 +61,7 @@ SELECT productCode,
 
  --Product Performance
 SELECT productCode, 
-				 SUM(quantityOrdered * priceEach) AS prod_perf
+       SUM(quantityOrdered * priceEach) AS prod_perf
   FROM orderdetails od
  GROUP BY productCode 
  ORDER BY prod_perf DESC
@@ -71,23 +71,23 @@ SELECT productCode,
 WITH
 low_stock_table AS (
 SELECT productCode, 
-				 ROUND(SUM(quantityOrdered) * 1.0/(SELECT quantityInStock
-																								 FROM products AS p
-																							 WHERE od.productCode = p.productCode), 2) AS low_stock
+       ROUND(SUM(quantityOrdered) * 1.0/(SELECT quantityInStock
+				           FROM products AS p
+					  WHERE od.productCode = p.productCode), 2) AS low_stock
   FROM orderdetails od
  GROUP BY productCode
  LIMIT 10
 )
 SELECT od.productCode,
-					p.productName,
-					p.productLine,
-					SUM(quantityOrdered*priceEach) AS prod_perf,
-					ROUND(SUM(quantityOrdered) * 1.0/(SELECT quantityInStock
-																									 FROM products AS p
-																								 WHERE od.productCode = p.productCode), 2) AS low_stock
-	 FROM orderdetails od
-       JOIN products AS p
-			ON od.productCode = p.productCode
+	p.productName,
+	p.productLine,
+	SUM(quantityOrdered*priceEach) AS prod_perf,
+	ROUND(SUM(quantityOrdered) * 1.0/(SELECT quantityInStock
+					    FROM products AS p
+				           WHERE od.productCode = p.productCode), 2) AS low_stock
+  FROM orderdetails od
+  JOIN products AS p
+    ON od.productCode = p.productCode
  WHERE od.productCode IN (SELECT productCode
                          FROM low_stock_table)
    GROUP BY od.productCode
@@ -108,23 +108,23 @@ SELECT o.customerNumber,
 --Top 5 VIP Customers
  WITH 
  customer_profit_table AS (
-SELECT o.customerNumber,
-				 SUM(od.quantityOrdered * (od.priceEach-p.buyPrice)) AS customer_profit
+      SELECT o.customerNumber,
+	     SUM(od.quantityOrdered * (od.priceEach-p.buyPrice)) AS customer_profit
 	FROM products p
-  INNER JOIN orderdetails AS od
-		   ON p.productCode = od.productCode
-  INNER JOIN orders o
-		   ON od.orderNumber = o.orderNumber
-   GROUP BY o.customerNumber
+       INNER JOIN orderdetails AS od
+          ON p.productCode = od.productCode
+       INNER JOIN orders o
+          ON od.orderNumber = o.orderNumber
+       GROUP BY o.customerNumber
 )
 SELECT c.contactLastName,
-				 c.contactFirstName,
-				 c.city,
-				 c.country,
-				 cpt.customer_profit
-   FROM customer_profit_table cpt
+       c.contactFirstName,
+       c.city,
+       c.country,
+       cpt.customer_profit
+  FROM customer_profit_table cpt
  INNER JOIN customers c
-		  ON cpt.customerNumber=c.customerNumber
+    ON cpt.customerNumber=c.customerNumber
  GROUP BY cpt.customerNumber
  ORDER BY customer_profit DESC
  LIMIT 5;
@@ -132,43 +132,43 @@ SELECT c.contactLastName,
   --Top 5 Least Engaged Customers
  WITH 
   customer_profit_table AS (
-SELECT o.customerNumber,
-				  SUM(od.quantityOrdered * (od.priceEach-p.buyPrice)) AS customer_profit
-	FROM products p
+SELECT  o.customerNumber,
+	SUM(od.quantityOrdered * (od.priceEach-p.buyPrice)) AS customer_profit
+   FROM products p
   INNER JOIN orderdetails AS od
-		   ON p.productCode = od.productCode
+     ON p.productCode = od.productCode
   INNER JOIN orders o
-		   ON od.orderNumber = o.orderNumber
+     ON od.orderNumber = o.orderNumber
   GROUP BY o.customerNumber
 )
 SELECT c.contactLastName,
-				  c.contactFirstName,
-				  c.city,
-				  c.country,
-				  cpt.customer_profit
-	FROM customer_profit_table cpt
-  INNER JOIN customers c
-		   ON cpt.customerNumber=c.customerNumber
-   GROUP BY cpt.customerNumber
-   ORDER BY customer_profit ASC
-	LIMIT 5;
+       c.contactFirstName,
+       c.city,
+       c.country,
+       cpt.customer_profit
+  FROM customer_profit_table cpt
+ INNER JOIN customers c
+    ON cpt.customerNumber=c.customerNumber
+ GROUP BY cpt.customerNumber
+ ORDER BY customer_profit ASC
+ LIMIT 5;
 	
 --Customer LTV (average amount of money a customer generates)
  WITH 
   customer_profit_table AS (
 SELECT o.customerNumber,
-				 SUM(od.quantityOrdered * (od.priceEach-p.buyPrice)) AS customer_profit
-	FROM products p
-  INNER JOIN orderdetails AS od
-		   ON p.productCode = od.productCode
-  INNER JOIN orders o
-		   ON od.orderNumber = o.orderNumber
-   GROUP BY o.customerNumber
+       SUM(od.quantityOrdered * (od.priceEach-p.buyPrice)) AS customer_profit
+  FROM products p
+ INNER JOIN orderdetails AS od
+    ON p.productCode = od.productCode
+ INNER JOIN orders o
+    ON od.orderNumber = o.orderNumber
+ GROUP BY o.customerNumber
 )
 SELECT AVG(customer_profit) AS lifetime_value
-	FROM customer_profit_table cpt;
+  FROM customer_profit_table cpt;
 
-	/* Conclusion 
+/* Conclusion 
 
 Question 1: Which products should we order more of or less of?
 
